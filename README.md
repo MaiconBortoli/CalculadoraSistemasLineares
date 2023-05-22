@@ -1,1 +1,1 @@
-# Elimina-o-De-Gauss
+# Eliminação-De-Gauss
