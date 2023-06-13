@@ -1,25 +1,36 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Calculadora</title>
-  <script>
-      var input1 = document.getElementById("input1").value;
-      var input2 = document.getElementById("input2").value;
-      var input3 = document.getElementById("input3").value;
-  </script>
+  <title>Calculadora Sistemas Lineares</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-  <h1>Calculadora</h1>
-  
-  <label for="input1">Valor 1:</label>
-  <input type="text" id="input1" /><br>
-  
-  <label for="input2">Valor 2:</label>
-  <input type="text" id="input2" /><br>
-  
-  <label for="input3">Valor 3:</label>
-  <input type="text" id="input3" /><br>
-  
-  <div id="resultado"></div>
+  <h1>Calculadora Sistemas Lineares</h1>
+  <div class="calculator">
+    <h2>Tamanho da Matriz</h2>
+    <input type="number" id="matrixSizeInput" placeholder="Digite o tamanho da matriz">
+
+    <button onclick="createMatrix()">Criar Matriz</button>
+
+    <h2>Matriz de Coeficientes</h2>
+    <table id="matrixTable"></table>
+
+    <h2>Método</h2>
+    <select id="methodSelect">
+      <option value="gauss">Gauss</option>
+      <option value="gauss-seidel">Gauss-Seidel</option>
+      <option value="lu">Decomposição LU</option>
+    </select>
+
+    <button onclick="calculate()">Calcular</button>
+
+    <h2>Resultado</h2>
+    <p id="resultText"></p>
+
+    <h2>Passo a Passo</h2>
+    <div id="stepsContainer"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
