@@ -70,20 +70,3 @@ function calcularSeidel() {
   `;
   containerSolucao.innerHTML = solucaoHTML;
 }
-
-function realizarSubstituicaoRegressiva(matrizAumentada) {
-  let tamanhoMatriz = matrizAumentada.length;
-  let valoresX = new Array(tamanhoMatriz).fill(0);
-
-  for (let i = tamanhoMatriz - 1; i >= 0; i--) {
-    let soma = 0;
-    for (let j = i + 1; j < tamanhoMatriz; j++) {
-      soma += matrizAumentada[i][j] * valoresX[j];
-    }
-    valoresX[i] = (matrizAumentada[i][tamanhoMatriz] - soma) / matrizAumentada[i][i];
-  }
-
-  return valoresX;
-}
-
-function gerarHTMLValoresX(valoresX) {
