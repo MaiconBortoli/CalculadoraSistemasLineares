@@ -1,109 +1,194 @@
-var matrixSizeInput = document.getElementById('matrixSize');
-var matrixTable = document.getElementById('matrix');
+<script>
+function criarCampos() {
+  let tamanhoMatriz = parseInt(document.getElementById('matriz').value);
+  if (isNaN(tamanhoMatriz) || tamanhoMatriz <= 0) {
+    alert("Insira um valor válido para o tamanho da matriz.");
+    return;
+  }
 
-function createMatrix() {
-  var matrixSize = parseInt(matrixSizeInput.value);
-  matrixTable.innerHTML = '';
+  let containerCampos = document.getElementById('campos');
+  containerCampos.innerHTML = '';
 
-  for (var i = 0; i < matrixSize; i++) {
-    var row = document.createElement('tr');
+  for (let i = 1; i <= tamanhoMatriz; i++) {
+    let linha = document.createElement('div');
+    linha.classList.add('caixa-linha', 'center');
 
-    for (var j = 0; j < matrixSize + 1; j++) {
-      var cell = document.createElement('td');
-      var input = document.createElement('input');
-      input.type = 'number';
-      cell.appendChild(input);
-      row.appendChild(cell);
+    let inputExtra = document.createElement('input');
+    inputExtra.type = 'text';
+    inputExtra.id = `valor${i}_extra`;
+    inputExtra.name = `valor${i}_extra`;
+    inputExtra.placeholder = '';
+    linha.appendChild(inputExtra);
+
+    for (let j = 1; j <= tamanhoMatriz; j++) {
+      let input = document.createElement('input');
+      input.type = 'text';
+      input.id = `valor${i}_${j}`;
+      input.name = `valor${i}_${j}`;
+      input.placeholder = '';
+      linha.appendChild(input);
     }
-
-    matrixTable.appendChild(row);
+    containerCampos.appendChild(linha);
   }
 }
 
-function calculate() {
-  var matrix = [];
-  var rows = matrixTable.rows;
+function calcularGauss() {
+  let tamanhoMatriz = parseInt(document.getElementById('matriz').value);
+  let matriz = [];
 
-  for (var i = 0; i < rows.length; i++) {
-    var row = rows[i];
-    var rowValues = [];
-
-    for (var j = 0; j < row.cells.length; j++) {
-      var cellValue = parseFloat(row.cells[j].querySelector('input').value);
-      rowValues.push(cellValue);
+  for (let i = 1; i <= tamanhoMatriz; i++) {
+    let linha = [];
+    for (let j = 1; j <= tamanhoMatriz; j++) {
+      let inputId = `valor${i}_${j}`;
+      let inputValue = parseFloat(document.getElementById(inputId).value);
+      linha.push(inputValue);
     }
-
-    matrix.push(rowValues);
+    matriz.push(linha);
   }
 
-  var steps = [];
-  var result = calculateGauss(matrix, steps);
+  let vetorExtra = [];
+  for (let i = 1; i <= tamanhoMatriz; i++) {
+    let inputExtraId = `valor${i}_extra`;
+    let inputExtraValue = parseFloat(document.getElementById(inputExtraId).value);
+    vetorExtra.push(inputExtraValue);
+  }
 
-  displayResult(result);
-  displaySteps(steps);
-}
+  for (let i = 0; i < tamanhoMatriz; i++) {
+    matriz[i].push(vetorExtra[i]);
+  }
 
-function calculateGauss(matrix, steps) {
-  var n = matrix.length;
+  console.log(matriz);
+  let matrizAumentada = matriz;
 
-  for (var i = 0; i < n; i++) {
-    var maxRowIndex = i;
-    var maxRowValue = Math.abs(matrix[i][i]);
-
-    for (var j = i + 1; j < n; j++) {
-      var currRowValue = Math.abs(matrix[j][i]);
-
-      if (currRowValue > maxRowValue) {
-        maxRowIndex = j;
-        maxRowValue = currRowValue;
+  for (let i = 0; i < tamanhoMatriz - 1; i++) {
+    for (let j = i + 1; j < tamanhoMatriz; j++) {
+      let razao = matrizAumentada[j][i] / matrizAumentada[i][i];
+      for (let k = i; k < tamanhoMatriz + 1; k++) {
+        matrizAumentada[j][k] -= razao * matrizAumentada[i][k];
       }
     }
+  }
 
-    var tempRow = matrix[i];
-    matrix[i] = matrix[maxRowIndex];
-    matrix[maxRowIndex] = tempRow;
+  let containerSolucao = document.getElementById('solucao');
+  containerSolucao.innerHTML = ''; // Limpa a solução anterior
 
-    for (var j = i + 1; j < n; j++) {
-      var factor = matrix[j][i] / matrix[i][i];
+  if (matrizAumentada[tamanhoMatriz - 1][tamanhoMatriz - 1] === 0) {
+    let semSolucaoHTML = `
+      <div>
+        <p style="text-align: center;">Não há solução única.</p>
+      </div>
+    `;
+    containerSolucao.innerHTML = semSolucaoHTML;
+    return;
+  }
 
-      for (var k = i + 1; k <= n; k++) {
-        matrix[j][k] -= factor * matrix[i][k];
+  let valoresX = realizarSubstituicaoRegressiva(matrizAumentada);
+  console.log('Solução Gauss:');
+  console.log(valoresX);
+
+  let solucaoHTML = `
+    <div>
+      <p style="text-align: center;">Solução:</p>
+      <pre style="text-align: center; font-family: 'Roboto', sans-serif;">Matriz A - Gauss:</pre>
+      ${matrizAumentada.map(linha => `<pre class="caixa-linha" style="font-family: 'Roboto', sans-serif;">${linha.map(valor => valor.toFixed(3)).join('   ')}</pre>`).join('')}
+      <pre style="text-align: center; font-family: 'Roboto', sans-serif;">Valores de x:</pre>
+      ${gerarHTMLValoresX(valoresX)}
+    </div>
+  `;
+  containerSolucao.innerHTML = solucaoHTML;
+}
+
+function calcularSeidel() {
+  let tamanhoMatriz = parseInt(document.getElementById('matriz').value);
+  let matriz = [];
+
+  for (let i = 1; i <= tamanhoMatriz; i++) {
+    let linha = [];
+    for (let j = 1; j <= tamanhoMatriz; j++) {
+      let inputId = `valor${i}_${j}`;
+      let inputValue = parseFloat(document.getElementById(inputId).value);
+      linha.push(inputValue);
+    }
+    matriz.push(linha);
+  }
+
+  let vetorExtra = [];
+  for (let i = 1; i <= tamanhoMatriz; i++) {
+    let inputExtraId = `valor${i}_extra`;
+    let inputExtraValue = parseFloat(document.getElementById(inputExtraId).value);
+    vetorExtra.push(inputExtraValue);
+  }
+
+  let b = vetorExtra;
+
+  console.log(matriz);
+  console.log(b);
+  let matrizA = matriz;
+
+  let x = new Array(tamanhoMatriz).fill(0);
+  let xNovo = new Array(tamanhoMatriz);
+
+  const epsilon = 0.001;
+  let iteracao = 0;
+  let maxDiferenca;
+
+  do {
+    maxDiferenca = 0;
+    for (let i = 0; i < tamanhoMatriz; i++) {
+      let soma1 = 0;
+      let soma2 = 0;
+      for (let j = 0; j < tamanhoMatriz; j++) {
+        if (j < i) {
+          soma1 += matrizA[i][j] * xNovo[j];
+        } else if (j > i) {
+          soma2 += matrizA[i][j] * x[j];
+        }
       }
+      xNovo[i] = (b[i] - soma1 - soma2) / matrizA[i][i];
+      maxDiferenca = Math.max(maxDiferenca, Math.abs(xNovo[i] - x[i]));
+      matrizA[i][tamanhoMatriz] = xNovo[i];
     }
 
-    steps.push(JSON.parse(JSON.stringify(matrix)));
-  }
+    x = [...xNovo];
+    iteracao++;
+  } while (maxDiferenca > epsilon && iteracao < 100);
 
-  var solution = new Array(n);
+  console.log('Solução Seidel:');
+  console.log(x);
 
-  for (var i = n - 1; i >= 0; i--) {
-    var sum = 0;
+  let containerSolucao = document.getElementById('solucao');
+  containerSolucao.innerHTML = ''; // Limpa a solução anterior
 
-    for (var j = i + 1; j < n; j++) {
-      sum += matrix[i][j] * solution[j];
+  let solucaoHTML = `
+    <div>
+      <p style="text-align: center;">Solução:</p>
+      <pre style="text-align: center; font-family: 'Roboto', sans-serif;">Matriz A - Gauss-Seidel:</pre>
+      ${matrizA.map(linha => `<pre class="caixa-linha" style="font-family: 'Roboto', sans-serif;">${linha.map(valor => valor.toFixed(3)).join('   ')}</pre>`).join('')}
+      <pre style="text-align: center; font-family: 'Roboto', sans-serif;">Valores de x (Gauss-Seidel):</pre>
+      ${gerarHTMLValoresX(x)}
+    </div>
+  `;
+  containerSolucao.innerHTML = solucaoHTML;
+}
+
+function realizarSubstituicaoRegressiva(matrizAumentada) {
+  let tamanhoMatriz = matrizAumentada.length;
+  let valoresX = new Array(tamanhoMatriz).fill(0);
+
+  for (let i = tamanhoMatriz - 1; i >= 0; i--) {
+    let soma = 0;
+    for (let j = i + 1; j < tamanhoMatriz; j++) {
+      soma += matrizAumentada[i][j] * valoresX[j];
     }
-
-    solution[i] = (matrix[i][n] - sum) / matrix[i][i];
-
-    steps.push(JSON.parse(JSON.stringify(matrix)));
+    valoresX[i] = (matrizAumentada[i][tamanhoMatriz] - soma) / matrizAumentada[i][i];
   }
 
-  return solution;
+  return valoresX;
 }
 
-function displayResult(result) {
-  var resultElement = document.getElementById('result');
-  resultElement.innerText = 'Resultado: ' + result.join(', ');
+function gerarHTMLValoresX(valoresX) {
+  let htmlValoresX = valoresX.map(valor => `<pre style="text-align: center; font-family: 'Roboto', sans-serif;">[${valor.toFixed(3)}]</pre>`);
+  return htmlValoresX.join('\n');
 }
 
-function displaySteps(steps) {
-  var stepsElement = document.getElementById('steps');
-  stepsElement.innerHTML = '';
-
-  for (var i = 0; i < steps.length; i++) {
-    var stepItem = document.createElement('div');
-    stepItem.className = 'step';
-    stepItem.innerHTML = '<p>Passo ' + (i + 1) + ':</p><pre>' + JSON.stringify(steps[i], null, 2) + '</pre>';
-    stepsElement.appendChild(stepItem);
-  }
-}
+</script>
